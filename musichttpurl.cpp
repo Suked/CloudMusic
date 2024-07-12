@@ -48,6 +48,7 @@ QString MusicHttpUrl::getMusicAlbumUrl(const MusicInformation &musicInformation)
             .arg(baseHttpUrl)
             .arg(musicInformation.getMusicPath())
             .arg(musicInformation.getAlbumImage());
+    qDebug() << "getMusicAlbumUrl" << httpUrl;
     return httpUrl;
 }
 
@@ -58,6 +59,6 @@ QString MusicHttpUrl::getMusicLyricUrl(const MusicInformation &musicInformation)
             .arg(baseHttpUrl)
             .arg(musicInformation.getMusicPath())
             .arg(musicInformation.getMusicLyric());
-    qDebug() << "getMusicMp3Url: " << httpUrl;qDebug() << "getMusicLyricUrl: " << httpUrl;
+    qDebug() << "getMusicLyricUrl: " << httpUrl;
     return httpUrl;
 }

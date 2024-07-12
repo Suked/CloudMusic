@@ -4,6 +4,8 @@
 #include "musicsearch.h"
 #include "musichttpurl.h"
 #include <QTime>
+#include <QTextBlock>
+#include <QCursor>
 
 void CloudMusicWindow::insertNetworkMusicTable(const MusicInformation &musicInformation)
 {
@@ -17,6 +19,7 @@ void CloudMusicWindow::insertNetworkMusicTable(const MusicInformation &musicInfo
     QString lyricUrl = MusicHttpUrl::getMusicHttpUrlObject()->getMusicLyricUrl(musicInformation);
     ui->networkMusicTable->setItem(lineNumber,1,new QTableWidgetItem(lyricUrl));
     QString albumUrl = MusicHttpUrl::getMusicHttpUrlObject()->getMusicAlbumUrl(musicInformation);
+//    qDebug() << "insertNetworkMusicTable: albumUrl: " << albumUrl;
     ui->networkMusicTable->setItem(lineNumber,2,new QTableWidgetItem(albumUrl));
     ui->networkMusicTable->setItem(lineNumber,3,new QTableWidgetItem(musicInformation.getMusicName()));
     ui->networkMusicTable->setItem(lineNumber,4,new QTableWidgetItem(musicInformation.getAlbumName()));
@@ -46,6 +49,48 @@ void CloudMusicWindow::initMusicTable(QTableWidget *tableWidget)
 void CloudMusicWindow::playMusic(const QStringList &urlList)
 {
     musicPlayer->playMusic(urlList);
+    musicScene->startAnimation();
+}
+
+// 歌词显示初始化
+void CloudMusicWindow::initMusicLyricTextEdit()
+{
+    ui->stackedWidget->setCurrentIndex(1);
+    // 获取调色板
+    QPalette palette = ui->lyricTextEdit->palette();
+    palette.setColor(QPalette::Highlight,QColor(Qt::transparent));// 设置透明色
+    palette.setColor(QPalette::HighlightedText,QColor(Qt::red));
+    ui->lyricTextEdit->setPalette(palette);
+    // 歌词居中
+    QTextDocument *doc = ui->lyricTextEdit->document();
+    doc->setDefaultTextOption(QTextOption(Qt::AlignCenter));
+    ui->stackedWidget->setCurrentIndex(0);
+}
+
+// 单独处理graphicsView
+bool CloudMusicWindow::eventFilter(QObject *watched, QEvent *event)
+{
+    if(watched == ui->graphicsView){
+        if(event->type() == QEvent::Resize){
+            QRect rect = ui->graphicsView->rect();
+            musicScene->setMusicSceneRect(rect);
+        }
+    }
+    return QMainWindow::eventFilter(watched, event);
+}
+
+// 处理歌曲在播放或者暂停时按钮图标的变化
+void CloudMusicWindow::handleMPlayerState(QMediaPlayer::State state)
+{
+    if(state == QMediaPlayer::PlayingState){
+        ui->musicPauseOrPlay->setProperty("state","musicPlayMode");
+    }else{
+        ui->musicPauseOrPlay->setProperty("state","musicPauseMode");
+        musicScene->pauseAnimation();
+    }
+    ui->musicPauseOrPlay->style()->unpolish(ui->musicPauseOrPlay);
+    ui->musicPauseOrPlay->style()->polish(ui->musicPauseOrPlay);
+    ui->musicPauseOrPlay->update();
 }
 
 // 构造函数
@@ -54,12 +99,21 @@ CloudMusicWindow::CloudMusicWindow(QWidget *parent)
     , ui(new Ui::CloudMusicWindow)
 {
     ui->setupUi(this);
+    this->resize(1040,820);
 
     musicPlayer = new MusicPlayer(this);
+    musicScene = new MusicScene(this);
+
+    ui->graphicsView->installEventFilter(this);
+    ui->graphicsView->setScene(musicScene->getScene());
+
+
     // 搜索歌曲信息
     connect(this,&CloudMusicWindow::searchMusic,musicPlayer,&MusicPlayer::searchMusic);
     // 初始化表格
     initMusicTable(ui->networkMusicTable);
+    // 初始化歌词信息
+    initMusicLyricTextEdit();
     // 添加歌曲名到表格
     connect(musicPlayer, &MusicPlayer::musicInformationReady,this,&CloudMusicWindow::insertNetworkMusicTable);
     // 设置歌曲时间
@@ -70,6 +124,13 @@ CloudMusicWindow::CloudMusicWindow(QWidget *parent)
     connect(musicPlayer, &MusicPlayer::positionChanged,this,&CloudMusicWindow::updateMusicPlayPostion);
     // 歌词解析完毕
     connect(musicPlayer, &MusicPlayer::musicLyricReady,this,&CloudMusicWindow::updateMusicDisplayLyric);
+    // 行号选择
+    connect(musicPlayer,&MusicPlayer::playLyricLineChanged,this,&CloudMusicWindow::selectPlayLyricByLine);
+    // 歌曲变化，专辑图片也跟着变化
+    connect(musicPlayer, &MusicPlayer::musicAlbumReady, musicScene,&MusicScene::updateDiskImage);
+    // 根据音乐是否播放改变按钮图标
+    connect(musicPlayer, &MusicPlayer::stateChanged,this,&CloudMusicWindow::handleMPlayerState);
+
 }
 
 CloudMusicWindow::~CloudMusicWindow()
@@ -103,7 +164,7 @@ void CloudMusicWindow::on_networkMusicTable_cellDoubleClicked(int row, int colum
     }
 //    qDebug() << "mp3Url: " << mp3Url;
 //    qDebug() << "lyricUrl: " << lyricUrl;
-//    qDebug() << "albumUrl: " << albumUrl;
+    qDebug() << "albumUrl: " << albumUrl;
 }
 
 // 歌曲更新
@@ -134,12 +195,21 @@ void CloudMusicWindow::on_musicPlaySlider_sliderMoved(int position)
     musicPlayer->setPosition(position);
 }
 
-// 歌词显示
+// 更新歌词显示
 void CloudMusicWindow::updateMusicDisplayLyric(const QString &musicLyricText)
 {
+    ui->stackedWidget->setCurrentIndex(1);
     ui->lyricTextEdit->setText(musicLyricText);
+    // 切换歌词显示模式
+    ui->musicLyricTableButton->setProperty("displayMode", "musicLyricMode");
+    // 清除样式
+    ui->musicLyricTableButton->style()->unpolish(ui->musicLyricTableButton);
+    ui->musicLyricTableButton->style()->polish(ui->musicLyricTableButton);
+    // 更新样式
+    ui->musicLyricTableButton->update();
 }
 
+// 歌词列表与歌曲列表切换
 void CloudMusicWindow::on_musicLyricTableButton_clicked()
 {
     int currentIndex = ui->stackedWidget->currentIndex();
@@ -156,4 +226,30 @@ void CloudMusicWindow::on_musicLyricTableButton_clicked()
     ui->musicLyricTableButton->update();
 
     return;
+}
+
+// 根据行号选择歌词
+void CloudMusicWindow::selectPlayLyricByLine(int line)
+{
+    QTextDocument *doc = ui->lyricTextEdit->document();
+    qint32 pos = doc->findBlockByLineNumber(line).position();//获取行位置
+    QTextCursor cursor = ui->lyricTextEdit->textCursor();
+    cursor.setPosition(pos,QTextCursor::MoveAnchor);//不选中
+    cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+    ui->lyricTextEdit->setTextCursor(cursor);
+}
+
+// 播放/暂停
+void CloudMusicWindow::on_musicPauseOrPlay_clicked()
+{
+    if(musicPlayer->state() ==  QMediaPlayer::PlayingState){
+        musicPlayer->pause();
+    }else
+    {
+        if(musicPlayer->state() == QMediaPlayer::PausedState){
+            musicScene->resumeAnimation();
+            qDebug() << "item: "<<  "asd" ;
+        }
+        musicPlayer->play();
+    }
 }

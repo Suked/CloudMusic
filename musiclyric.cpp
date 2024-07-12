@@ -43,8 +43,16 @@ void MusicLyric::paraseLyric()
         paraseLineLyric(lineLyric, line);
         line++;
     }
+    if(musicLyricText.isEmpty() || lyricTimeMap.isEmpty()){
+        return;
+    }
+    qint64 lastTime = lyricTimeMap.lastKey();
+    qint32 lastLine = lyricTimeMap[lyricTimeMap.lastKey()];
+    lyricTimeMap.insert(lastTime + 60*100, lastLine + 1);
 
+    emit lyricReady();
     qDebug() << lyricList;
+    return;
 }
 
 void MusicLyric::paraseLineLyric(const QString &lyric, const qint32 &line)
@@ -61,10 +69,8 @@ void MusicLyric::paraseLineLyric(const QString &lyric, const qint32 &line)
 
     lyricTimeMap.insert(lyricTimeMsec,line);
 
-    if(musicLyricText.isEmpty() || lyricTimeMap.isEmpty()){
-        return;
-    }
 
-    emit lyricReady();
+
+
     return;
 }

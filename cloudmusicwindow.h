@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QTableWidget>
+#include <QTextEdit>
+#include "musicscene.h"
 #include "musicplayer.h"
 
 QT_BEGIN_NAMESPACE
@@ -22,11 +24,17 @@ public:
     void initMusicTable(QTableWidget *tableWidget);
     // 播放歌曲
     void playMusic(const QStringList &urlList);
+    // 歌词初始化
+    void initMusicLyricTextEdit(void);
+    // 事件过滤器
+    bool eventFilter(QObject *watched, QEvent *event);
 
 signals:
     void searchMusic(const QString &music);
 
 private slots:
+    // 按下播放暂停按钮
+    void handleMPlayerState(QMediaPlayer::State status);
     // 当按下enter键出发槽函数
     void on_searchLineEdit_returnPressed();
     // 双击歌曲名触发事件
@@ -41,11 +49,16 @@ private slots:
     void on_musicPlaySlider_sliderMoved(int position);
     // 更新歌词显示
     void updateMusicDisplayLyric(const QString &musicLyricText);
-
+    // 切换样式
     void on_musicLyricTableButton_clicked();
+    // 通过行号选择歌词
+    void selectPlayLyricByLine(int line);
+
+    void on_musicPauseOrPlay_clicked();
 
 private:
     Ui::CloudMusicWindow *ui;
     MusicPlayer *musicPlayer;
+    MusicScene *musicScene;
 };
 #endif // CLOUDMUSICWINDOW_H

@@ -22,8 +22,6 @@ void MusicHttp::get(const QString &httpUrl)
     QNetworkReply *reply = networkAccessManager->get(request);
     connect(reply, &QNetworkReply::readyRead, this, &MusicHttp::readData);
     connect(reply, &QNetworkReply::finished,this,&MusicHttp::handleFinished);
-//    connect(reply, &QNetworkReply::finished,this,&MusicHttp::readyRead);
-//    connect(reply, &QNetworkReply::finished,reply,&QNetworkReply::deleteLater);
     connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),this,SLOT(handleError(QNetworkReply::NetworkError)));
 }
 

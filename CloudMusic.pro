@@ -22,21 +22,25 @@ SOURCES += \
     musichttp.cpp \
     musichttpurl.cpp \
     musicinformation.cpp \
-    musiclyric.cpp \
+    musicitem.cpp \
     musicplayer.cpp \
-    musicsearch.cpp
+    musicscene.cpp
+
 
 HEADERS += \
     cloudmusicwindow.h \
     musichttp.h \
     musichttpurl.h \
     musicinformation.h \
-    musiclyric.h \
+    musicitem.h \
     musicplayer.h \
-    musicsearch.h
+    musicscene.h
 
 FORMS += \
     cloudmusicwindow.ui
+
+include(MusicHandle/MusicHandle.pri)
+INCLUDEPATH += MusicHandle
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -12,20 +12,25 @@ MusicPlayer::MusicPlayer(QObject *parent) : QMediaPlayer(parent)
         for(MusicInformation musicinfo : musicInfoList){
             qDebug() << "duration:" << musicinfo.getMusicDuration();
             emit musicInformationReady(musicinfo);
-
         }
-        musicLyric = new MusicLyric(this);
-
-        // 歌词捕获
-        connect(musicLyric,&MusicLyric::lyricReady,this,[this](){
-            emit musicLyricReady(musicLyric->getMusicLyricText());
-            this->LyricTimeMap = musicLyric->getLyricTimeMap();
-        });
-//        MusicInformation music = musicInfoList[0];
-//        qDebug() << MusicHttpUrl::getMusicHttpUrlObject()->getMusicMp3Url(music);
-//        qDebug() << MusicHttpUrl::getMusicHttpUrlObject()->getMusicAlbumUrl(music);
-//        qDebug() << MusicHttpUrl::getMusicHttpUrlObject()->getMusicLyricUrl(music);
     });
+
+    musicLyric = new MusicLyric(this);
+
+    musicAlbum = new MusicAlbum(this);
+    // 歌词捕获
+    connect(musicLyric,&MusicLyric::lyricReady,this,[this](){
+        emit musicLyricReady(musicLyric->getMusicLyricText());
+        this->lyricTimeMap = musicLyric->getLyricTimeMap();
+    });
+
+    // 发送当前歌词行号信息
+    connect(this,&MusicPlayer::positionChanged,this,&MusicPlayer::queryPlayLyricLineByTime);
+
+    // 专辑图片信号发送
+    connect(musicAlbum, &MusicAlbum::musicAlbumReady,this,&MusicPlayer::musicAlbumReady);
+    // 通知间隔
+    this->setNotifyInterval(200);
 }
 
 // 歌曲播放
@@ -37,11 +42,13 @@ void MusicPlayer::playMusic(const QStringList &urlList)
 
     // 下载歌词
     musicLyric->download(lyricUrl);
+    // 下载图片
+    musicAlbum->download(albumUrl);
 
     qDebug() << "--------------------------------------------";
-//    qDebug() << "playMusic:mp3Url:" << mp3Url;
+    qDebug() << "playMusic:mp3Url:" << mp3Url;
     qDebug() << "playMusic:lyricUrl:" << lyricUrl;
-//    qDebug() << "playMusic:albumUrl:" << albumUrl;
+    qDebug() << "playMusic:albumUrl:" << albumUrl;
     qDebug() << "--------------------------------------------";
     this->setMedia(QUrl(mp3Url));
     this->setVolume(100);
@@ -51,4 +58,14 @@ void MusicPlayer::playMusic(const QStringList &urlList)
 void MusicPlayer::searchMusic(const QString &music)
 {
     musicSearch->search(music);
+}
+
+void MusicPlayer::queryPlayLyricLineByTime(qint64 time)
+{
+    auto it = lyricTimeMap.lowerBound(time);
+    if(it != lyricTimeMap.end()){
+        int line = it.key() > time ? it.value() - 1 : it.value();
+        emit playLyricLineChanged(line);
+        //qDebug() << "line: " << line;
+    }
 }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>845</width>
-    <height>689</height>
+    <width>1040</width>
+    <height>820</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,6 +25,12 @@ background-image: url(:/images/background.png);}</string>
        <widget class="QGraphicsView" name="graphicsView">
         <property name="styleSheet">
          <string notr="true">background-color: transparent;</string>
+        </property>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
         </property>
        </widget>
       </item>
@@ -259,7 +265,7 @@ QPushButton[displayMode=&quot;musicLyricMode&quot;]{
          </spacer>
         </item>
         <item row="0" column="4" rowspan="4">
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="musicPauseOrPlay">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -267,7 +273,15 @@ QPushButton[displayMode=&quot;musicLyricMode&quot;]{
            </sizepolicy>
           </property>
           <property name="styleSheet">
-           <string notr="true">border-image: url(:/images/pause.png);</string>
+           <string notr="true">QPushButton{
+	border-image: url(:/images/pause.png);
+}
+QPushButton[state=&quot;musicPauseMode&quot;]{
+	border-image: url(:/images/pause.png);
+}
+QPushButton[state=&quot;musicPlayMode&quot;]{
+	border-image: url(:/images/play.png);
+}</string>
           </property>
           <property name="text">
            <string/>
@@ -402,6 +416,9 @@ QSlider::sub-page:horizontal
     </item>
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
       <widget class="QWidget" name="page">
        <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1,10">
         <property name="spacing">
@@ -653,6 +670,12 @@ QTableWidget::Item:selected
        </layout>
       </widget>
       <widget class="QWidget" name="page_2">
+       <property name="styleSheet">
+        <string notr="true">QWidget{
+	
+	background-color: transparent;
+}</string>
+       </property>
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <property name="spacing">
          <number>0</number>
@@ -670,7 +693,20 @@ QTableWidget::Item:selected
          <number>0</number>
         </property>
         <item>
-         <widget class="QTextEdit" name="lyricTextEdit"/>
+         <widget class="QTextEdit" name="lyricTextEdit">
+          <property name="styleSheet">
+           <string notr="true">QTextEdit{	
+	
+	color: rgb(255, 255, 255);
+	background-color: transparent;
+	border-style: outset;
+}
+</string>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -683,7 +719,7 @@ QTableWidget::Item:selected
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>845</width>
+     <width>1040</width>
      <height>26</height>
     </rect>
    </property>
