@@ -30,7 +30,7 @@ QString MusicHttpUrl::getMusicSearchUrl(const QString &music)
     return httpUrl;
 }
 
-// 获取MP3地址
+// 获取mp3歌曲URL
 QString MusicHttpUrl::getMusicMp3Url(const MusicInformation &musicInformation)
 {
     QString httpUrl = QString("%1%2/%3")
@@ -41,7 +41,7 @@ QString MusicHttpUrl::getMusicMp3Url(const MusicInformation &musicInformation)
     return httpUrl;
 }
 
-// 获取歌曲图片
+// 获取歌曲专辑图片
 QString MusicHttpUrl::getMusicAlbumUrl(const MusicInformation &musicInformation)
 {
     QString httpUrl = QString("%1%2/%3")
@@ -52,7 +52,7 @@ QString MusicHttpUrl::getMusicAlbumUrl(const MusicInformation &musicInformation)
     return httpUrl;
 }
 
-// 获取歌词
+// 获取歌曲歌词
 QString MusicHttpUrl::getMusicLyricUrl(const MusicInformation &musicInformation)
 {
     QString httpUrl = QString("%1%2/%3")

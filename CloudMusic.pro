@@ -26,7 +26,6 @@ SOURCES += \
     musicplayer.cpp \
     musicscene.cpp
 
-
 HEADERS += \
     cloudmusicwindow.h \
     musichttp.h \
@@ -37,7 +36,7 @@ HEADERS += \
     musicscene.h
 
 FORMS += \
-    cloudmusicwindow.ui
+    C:/Users/12872/Desktop/cloudmusicwindow.ui
 
 include(MusicHandle/MusicHandle.pri)
 INCLUDEPATH += MusicHandle

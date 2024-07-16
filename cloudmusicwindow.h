@@ -28,6 +28,8 @@ public:
     void initMusicLyricTextEdit(void);
     // 事件过滤器
     bool eventFilter(QObject *watched, QEvent *event);
+    // 播放下一曲
+    void playTableMusic(QTableWidget *musicTable, int row);
 
 signals:
     void searchMusic(const QString &music);
@@ -56,9 +58,14 @@ private slots:
 
     void on_musicPauseOrPlay_clicked();
 
+    void on_tabWidget_currentChanged(int index);
+
+    void on_nextMusicButton_clicked();
+
 private:
     Ui::CloudMusicWindow *ui;
     MusicPlayer *musicPlayer;
     MusicScene *musicScene;
+    QTableWidget *musicTable;
 };
 #endif // CLOUDMUSICWINDOW_H

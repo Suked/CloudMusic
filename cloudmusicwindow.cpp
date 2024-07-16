@@ -7,6 +7,7 @@
 #include <QTextBlock>
 #include <QCursor>
 
+// 添加歌曲信息表格
 void CloudMusicWindow::insertNetworkMusicTable(const MusicInformation &musicInformation)
 {
     // 获取当前行
@@ -79,6 +80,18 @@ bool CloudMusicWindow::eventFilter(QObject *watched, QEvent *event)
     return QMainWindow::eventFilter(watched, event);
 }
 
+// 歌曲播放
+void CloudMusicWindow::playTableMusic(QTableWidget *musicTable, int row)
+{
+    QString mp3Url = musicTable->item(row + 1,0)->text();
+    QString lyricUrl = musicTable->item(row + 1,1)->text();
+    QString albumUrl = musicTable->item(row + 1,2)->text();
+    QStringList urlList;
+    urlList << mp3Url << lyricUrl << albumUrl;
+    playMusic(urlList);
+    return;
+}
+
 // 处理歌曲在播放或者暂停时按钮图标的变化
 void CloudMusicWindow::handleMPlayerState(QMediaPlayer::State state)
 {
@@ -100,13 +113,15 @@ CloudMusicWindow::CloudMusicWindow(QWidget *parent)
 {
     ui->setupUi(this);
     this->resize(1040,820);
+    ui->tabWidget->setCurrentIndex(1);
+    musicTable = ui->networkMusicTable;
+    initMusicTable(ui->networkMusicTable);
 
     musicPlayer = new MusicPlayer(this);
     musicScene = new MusicScene(this);
 
     ui->graphicsView->installEventFilter(this);
     ui->graphicsView->setScene(musicScene->getScene());
-
 
     // 搜索歌曲信息
     connect(this,&CloudMusicWindow::searchMusic,musicPlayer,&MusicPlayer::searchMusic);
@@ -131,14 +146,17 @@ CloudMusicWindow::CloudMusicWindow(QWidget *parent)
     // 根据音乐是否播放改变按钮图标
     connect(musicPlayer, &MusicPlayer::stateChanged,this,&CloudMusicWindow::handleMPlayerState);
 
+
 }
+
+
 
 CloudMusicWindow::~CloudMusicWindow()
 {
     delete ui;
 }
 
-
+// 搜索按钮按回车键
 void CloudMusicWindow::on_searchLineEdit_returnPressed()
 {
     QString music = ui->searchLineEdit->text();
@@ -153,18 +171,10 @@ void CloudMusicWindow::on_searchLineEdit_returnPressed()
 // 双击歌曲名开始播放
 void CloudMusicWindow::on_networkMusicTable_cellDoubleClicked(int row, int column)
 {
-    QString mp3Url = ui->networkMusicTable->item(row,0)->text();
-    QString lyricUrl = ui->networkMusicTable->item(row,1)->text();
-    QString albumUrl = ui->networkMusicTable->item(row,2)->text();
-    QStringList urlList;
-    urlList << mp3Url << lyricUrl << albumUrl;
-    playMusic(urlList);
-    for(QString item : urlList){
-        qDebug() << "item: " << item;
-    }
-//    qDebug() << "mp3Url: " << mp3Url;
-//    qDebug() << "lyricUrl: " << lyricUrl;
-    qDebug() << "albumUrl: " << albumUrl;
+    Q_UNUSED(column);
+
+    playTableMusic(ui->networkMusicTable, row);
+
 }
 
 // 歌曲更新
@@ -252,4 +262,24 @@ void CloudMusicWindow::on_musicPauseOrPlay_clicked()
         }
         musicPlayer->play();
     }
+}
+
+void CloudMusicWindow::on_tabWidget_currentChanged(int index)
+{
+    // index:1网络歌曲，index:0本地歌曲
+    musicTable = index ? ui->networkMusicTable : ui->localMusicTable;
+
+}
+
+void CloudMusicWindow::on_nextMusicButton_clicked()
+{
+    qDebug() << "on_nextMusicButton_clicked";
+    int currentRow = musicTable->currentRow();
+    int row = currentRow + 1;
+    int totalRow = musicTable->rowCount();
+    if(!totalRow)
+        return;
+    playTableMusic(musicTable, row);
+
+    return;
 }
